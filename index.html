@@ -498,13 +498,53 @@ function deletePflanzung() {
   neuePflanzung();
   flash('🗑️ Pflanzung gelöscht');
 }
-function renderKalender() {}
+function renderKalender() {
+  const { pflanzungen } = loadData();
+  const grid = document.getElementById('kalender-grid');
+  if (!grid) return;
+  const display = document.getElementById('month-display');
+  if (display) display.textContent = MONATE[kalenderMonth] + ' ' + kalenderYear;
+
+  const monatStr = `${kalenderYear}-${String(kalenderMonth + 1).padStart(2, '0')}`;
+  const naechsterMonat = kalenderMonth === 11
+    ? `${kalenderYear + 1}-01`
+    : `${kalenderYear}-${String(kalenderMonth + 2).padStart(2, '0')}`;
+
+  const jetztPflanzen = pflanzungen.filter(p => (p.aussaat || '').startsWith(monatStr));
+
+  const sechsWochenVor = new Date(kalenderYear, kalenderMonth, 1);
+  sechsWochenVor.setDate(sechsWochenVor.getDate() - 42);
+  const erntebereit = pflanzungen.filter(p =>
+    p.status === 'waechst' && p.pflanzung && new Date(p.pflanzung) <= sechsWochenVor
+  );
+
+  const aktiv = pflanzungen.filter(p => p.status === 'waechst');
+
+  const naechsteSchritte = pflanzungen.filter(p => (p.aussaat || '').startsWith(naechsterMonat));
+
+  const karten = [
+    { titel: '🌱 Jetzt pflanzen', items: jetztPflanzen.map(p => p.pflanze), leer: 'Keine Aussaaten für diesen Monat geplant.' },
+    { titel: '🥬 Zur Ernte bereit', items: erntebereit.map(p => p.pflanze), leer: 'Noch keine Pflanzungen erntereif.' },
+    { titel: '💧 Gießen', items: aktiv.map(p => p.pflanze), leer: 'Keine aktiven Pflanzungen.' },
+    { titel: '📅 Nächste Schritte', items: naechsteSchritte.map(p => p.pflanze), leer: 'Nichts für nächsten Monat geplant.' }
+  ];
+
+  grid.innerHTML = karten.map(k => `
+    <div class="card">
+      <h3 style="margin:0 0 0.75rem;font-size:1rem;color:#14532d;">${k.titel}</h3>
+      ${k.items.length === 0
+        ? `<p style="color:#9ca3af;font-size:0.82rem;">${k.leer}</p>`
+        : `<ul style="margin:0;padding-left:1.2rem;font-size:0.85rem;color:#374151;">${k.items.map(i => `<li>${i}</li>`).join('')}</ul>`
+      }
+    </div>
+  `).join('');
+}
+
 function changeMonth(dir) {
   kalenderMonth += dir;
   if (kalenderMonth < 0) { kalenderMonth = 11; kalenderYear--; }
   if (kalenderMonth > 11) { kalenderMonth = 0; kalenderYear++; }
-  const el = document.getElementById('month-display');
-  if (el) el.textContent = MONATE[kalenderMonth] + ' ' + kalenderYear;
+  renderKalender();
 }
 function renderStatistik() {}
 function changeSaison(dir) {
