@@ -370,10 +370,15 @@ function uid() {
 }
 
 function loadData() {
-  return {
-    beete: JSON.parse(localStorage.getItem('bv_beete') || '[]'),
-    pflanzungen: JSON.parse(localStorage.getItem('bv_pflanzungen') || '[]')
-  };
+  try {
+    return {
+      beete: JSON.parse(localStorage.getItem('bv_beete') || '[]'),
+      pflanzungen: JSON.parse(localStorage.getItem('bv_pflanzungen') || '[]')
+    };
+  } catch (e) {
+    console.error('Storage corruption:', e);
+    return { beete: [], pflanzungen: [] };
+  }
 }
 
 function saveBeete(beete) {
