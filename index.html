@@ -176,7 +176,26 @@
     </div>
     <div class="card">
       <div class="card-title" id="pfl-form-title">✏️ Pflanzung erfassen</div>
-      <div class="form-group"><label>Pflanze</label><input type="text" id="pfl-name" placeholder="z.B. Tomaten, Möhren ..."></div>
+      <div class="form-group"><label>Pflanze</label>
+        <input type="text" id="pfl-name" list="pflanzen-liste" placeholder="z.B. Tomaten, Möhren …" autocomplete="off">
+        <datalist id="pflanzen-liste">
+          <option value="Tomaten"><option value="Cherrytomaten"><option value="Paprika">
+          <option value="Chili"><option value="Auberginen"><option value="Zucchini">
+          <option value="Gurken"><option value="Kürbis"><option value="Möhren">
+          <option value="Rote Bete"><option value="Radieschen"><option value="Rettich">
+          <option value="Kohlrabi"><option value="Brokkoli"><option value="Blumenkohl">
+          <option value="Rotkohl"><option value="Weißkohl"><option value="Wirsing">
+          <option value="Spinat"><option value="Mangold"><option value="Feldsalat">
+          <option value="Kopfsalat"><option value="Rucola"><option value="Basilikum">
+          <option value="Petersilie"><option value="Schnittlauch"><option value="Dill">
+          <option value="Koriander"><option value="Thymian"><option value="Rosmarin">
+          <option value="Minze"><option value="Lavendel"><option value="Erbsen">
+          <option value="Bohnen"><option value="Stangenbohnen"><option value="Zuckermais">
+          <option value="Lauch"><option value="Zwiebeln"><option value="Knoblauch">
+          <option value="Porree"><option value="Fenchel"><option value="Sellerie">
+          <option value="Erdbeeren"><option value="Himbeeren"><option value="Heidelbeeren">
+        </datalist>
+      </div>
       <div class="form-group"><label>Beet</label><select id="pfl-beet"></select></div>
       <div class="form-row">
         <div class="form-group"><label>Aussaat</label><input type="date" id="pfl-aussaat"></div>
