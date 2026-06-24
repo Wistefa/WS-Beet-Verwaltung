@@ -177,24 +177,38 @@
     <div class="card">
       <div class="card-title" id="pfl-form-title">✏️ Pflanzung erfassen</div>
       <div class="form-group"><label>Pflanze</label>
-        <input type="text" id="pfl-name" list="pflanzen-liste" placeholder="z.B. Tomaten, Möhren …" autocomplete="off">
-        <datalist id="pflanzen-liste">
-          <option value="Tomaten"><option value="Cherrytomaten"><option value="Paprika">
-          <option value="Chili"><option value="Auberginen"><option value="Zucchini">
-          <option value="Gurken"><option value="Kürbis"><option value="Möhren">
-          <option value="Rote Bete"><option value="Radieschen"><option value="Rettich">
-          <option value="Kohlrabi"><option value="Brokkoli"><option value="Blumenkohl">
-          <option value="Rotkohl"><option value="Weißkohl"><option value="Wirsing">
-          <option value="Spinat"><option value="Mangold"><option value="Feldsalat">
-          <option value="Kopfsalat"><option value="Rucola"><option value="Basilikum">
-          <option value="Petersilie"><option value="Schnittlauch"><option value="Dill">
-          <option value="Koriander"><option value="Thymian"><option value="Rosmarin">
-          <option value="Minze"><option value="Lavendel"><option value="Erbsen">
-          <option value="Bohnen"><option value="Stangenbohnen"><option value="Zuckermais">
-          <option value="Lauch"><option value="Zwiebeln"><option value="Knoblauch">
-          <option value="Porree"><option value="Fenchel"><option value="Sellerie">
-          <option value="Erdbeeren"><option value="Himbeeren"><option value="Heidelbeeren">
-        </datalist>
+        <input type="text" id="pfl-name" placeholder="Eigenen Namen eingeben …">
+        <select id="pfl-preset" onchange="if(this.value){document.getElementById('pfl-name').value=this.value;this.value='';}" style="margin-top:0.4rem;width:100%;">
+          <option value="">— Häufige Pflanzen auswählen —</option>
+          <optgroup label="🍅 Fruchtgemüse">
+            <option>Tomaten</option><option>Cherrytomaten</option><option>Paprika</option>
+            <option>Chili</option><option>Auberginen</option><option>Zucchini</option>
+            <option>Gurken</option><option>Kürbis</option><option>Zuckermais</option>
+          </optgroup>
+          <optgroup label="🥕 Wurzel- & Knollengemüse">
+            <option>Möhren</option><option>Rote Bete</option><option>Radieschen</option>
+            <option>Rettich</option><option>Sellerie</option><option>Fenchel</option>
+          </optgroup>
+          <optgroup label="🥦 Kohl & Blattgemüse">
+            <option>Brokkoli</option><option>Blumenkohl</option><option>Kohlrabi</option>
+            <option>Rotkohl</option><option>Weißkohl</option><option>Wirsing</option>
+            <option>Spinat</option><option>Mangold</option><option>Feldsalat</option>
+            <option>Kopfsalat</option><option>Rucola</option>
+          </optgroup>
+          <optgroup label="🧅 Zwiebeln & Hülsenfrüchte">
+            <option>Lauch</option><option>Porree</option><option>Zwiebeln</option>
+            <option>Knoblauch</option><option>Erbsen</option><option>Bohnen</option>
+            <option>Stangenbohnen</option>
+          </optgroup>
+          <optgroup label="🌿 Kräuter">
+            <option>Basilikum</option><option>Petersilie</option><option>Schnittlauch</option>
+            <option>Dill</option><option>Koriander</option><option>Thymian</option>
+            <option>Rosmarin</option><option>Minze</option><option>Lavendel</option>
+          </optgroup>
+          <optgroup label="🍓 Beeren">
+            <option>Erdbeeren</option><option>Himbeeren</option><option>Heidelbeeren</option>
+          </optgroup>
+        </select>
       </div>
       <div class="form-group"><label>Beet</label><select id="pfl-beet"></select></div>
       <div class="form-row">
