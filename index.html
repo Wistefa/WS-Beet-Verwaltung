@@ -384,12 +384,120 @@ function updateBeetDropdowns() {
   }
 }
 
-// ── Placeholder-Funktionen (werden in Task 4-6 ersetzt) ──────────────────────
-function updateJahrFilter() {}
-function renderPflanzungen() {}
-function neuePflanzung() {}
-function savePflanzung() {}
-function deletePflanzung() {}
+// ── Pflanzungen ──────────────────────────────────────────────────────────────
+const STATUS_LABEL = { gesaet: '🌱 Gesät', waechst: '🌿 Wächst', geerntet: '🥬 Geerntet', gescheitert: '💀 Gescheitert' };
+
+function renderPflanzungen() {
+  const { beete, pflanzungen } = loadData();
+  const filterBeet = document.getElementById('filter-beet')?.value || '';
+  const filterJahr = document.getElementById('filter-jahr')?.value || '';
+  const list = document.getElementById('pflanzung-list');
+  if (!list) return;
+
+  let gefiltert = pflanzungen;
+  if (filterBeet) gefiltert = gefiltert.filter(p => p.beetId === filterBeet);
+  if (filterJahr) gefiltert = gefiltert.filter(p => {
+    const d = p.aussaat || p.pflanzung;
+    return d && d.startsWith(filterJahr);
+  });
+
+  if (gefiltert.length === 0) {
+    list.innerHTML = '<p style="color:#9ca3af;font-size:0.82rem;padding:0.5rem 0;">Keine Pflanzungen gefunden.</p>';
+    return;
+  }
+  list.innerHTML = gefiltert.map(p => {
+    const beet = beete.find(b => b.id === p.beetId);
+    const beetName = beet ? beet.name : '—';
+    const sel = p.id === currentPflanzungId ? ' selected' : '';
+    return `<div class="list-item${sel}" onclick="selectPflanzung('${p.id}')">
+      <div>
+        <div class="list-item-title">${p.pflanze}</div>
+        <div class="list-item-sub">${beetName} · ${STATUS_LABEL[p.status] || p.status}</div>
+      </div>
+      <span class="badge">${p.aussaat || p.pflanzung || '—'}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateJahrFilter() {
+  const { pflanzungen } = loadData();
+  const jahre = [...new Set(pflanzungen.map(p => {
+    const d = p.aussaat || p.pflanzung;
+    return d ? d.slice(0, 4) : null;
+  }).filter(Boolean))].sort().reverse();
+  const el = document.getElementById('filter-jahr');
+  if (!el) return;
+  const cur = el.value;
+  el.innerHTML = '<option value="">Alle Jahre</option>' + jahre.map(j => `<option value="${j}">${j}</option>`).join('');
+  if (cur) el.value = cur;
+}
+
+function selectPflanzung(id) {
+  currentPflanzungId = id;
+  const { pflanzungen } = loadData();
+  const p = pflanzungen.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('pfl-form-title').textContent = '✏️ Pflanzung bearbeiten';
+  document.getElementById('pfl-name').value = p.pflanze;
+  document.getElementById('pfl-beet').value = p.beetId || '';
+  document.getElementById('pfl-aussaat').value = p.aussaat || '';
+  document.getElementById('pfl-pflanzung').value = p.pflanzung || '';
+  document.getElementById('pfl-status').value = p.status;
+  document.getElementById('pfl-notizen').value = p.notizen || '';
+  document.getElementById('pfl-delete-btn').style.display = '';
+  renderPflanzungen();
+}
+
+function neuePflanzung() {
+  currentPflanzungId = null;
+  document.getElementById('pfl-form-title').textContent = '✏️ Pflanzung anlegen';
+  document.getElementById('pfl-name').value = '';
+  document.getElementById('pfl-aussaat').value = '';
+  document.getElementById('pfl-pflanzung').value = '';
+  document.getElementById('pfl-status').value = 'gesaet';
+  document.getElementById('pfl-notizen').value = '';
+  document.getElementById('pfl-delete-btn').style.display = 'none';
+  document.getElementById('pfl-name').focus();
+  renderPflanzungen();
+}
+
+function savePflanzung() {
+  const pflanze = document.getElementById('pfl-name').value.trim();
+  if (!pflanze) { alert('Bitte Pflanzenname eingeben.'); return; }
+  const { pflanzungen } = loadData();
+  const data = {
+    pflanze,
+    beetId: document.getElementById('pfl-beet').value,
+    aussaat: document.getElementById('pfl-aussaat').value,
+    pflanzung: document.getElementById('pfl-pflanzung').value,
+    status: document.getElementById('pfl-status').value,
+    notizen: document.getElementById('pfl-notizen').value.trim()
+  };
+  if (currentPflanzungId) {
+    const idx = pflanzungen.findIndex(p => p.id === currentPflanzungId);
+    pflanzungen[idx] = { ...pflanzungen[idx], ...data };
+  } else {
+    const neu = { id: uid(), ...data };
+    pflanzungen.push(neu);
+    currentPflanzungId = neu.id;
+  }
+  savePflanzungen(pflanzungen);
+  updateJahrFilter();
+  renderPflanzungen();
+  flash('✅ Pflanzung gespeichert');
+}
+
+function deletePflanzung() {
+  if (!currentPflanzungId) return;
+  const { pflanzungen } = loadData();
+  const p = pflanzungen.find(x => x.id === currentPflanzungId);
+  if (!p || !confirm(`Pflanzung "${p.pflanze}" wirklich löschen?`)) return;
+  savePflanzungen(pflanzungen.filter(x => x.id !== currentPflanzungId));
+  currentPflanzungId = null;
+  updateJahrFilter();
+  neuePflanzung();
+  flash('🗑️ Pflanzung gelöscht');
+}
 function renderKalender() {}
 function changeMonth(dir) {
   kalenderMonth += dir;
@@ -418,6 +526,10 @@ function init() {
   const breiteEl = document.getElementById('beet-breite');
   if (laengeEl) laengeEl.addEventListener('input', updateFlaeche);
   if (breiteEl) breiteEl.addEventListener('input', updateFlaeche);
+  const filterBeet = document.getElementById('filter-beet');
+  const filterJahr = document.getElementById('filter-jahr');
+  if (filterBeet) filterBeet.addEventListener('change', renderPflanzungen);
+  if (filterJahr) filterJahr.addEventListener('change', renderPflanzungen);
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
