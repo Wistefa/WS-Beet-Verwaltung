@@ -100,6 +100,19 @@
   #kpi-row { display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem; }
   #stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
 
+  #pflanzkalender { margin-top: 1.5rem; }
+  #pflanzkalender h3 { font-size: 1rem; color: #14532d; margin: 0 0 0.75rem; }
+  .pk-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .pk-table th { background: #f0fdf4; color: #14532d; font-weight: 700; padding: 0.4rem 0.6rem; text-align: left; border-bottom: 2px solid #bbf7d0; white-space: nowrap; }
+  .pk-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid #f0fdf4; vertical-align: middle; }
+  .pk-table tr.pk-aktiv { background: #f0fdf4; border-left: 3px solid #16a34a; }
+  .pk-table tr.pk-aktiv td:first-child { font-weight: 600; }
+  .pk-tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 0.75rem; white-space: nowrap; }
+  .pk-tag-aussaat { background: #d1fae5; color: #065f46; }
+  .pk-tag-pflanzen { background: #bbf7d0; color: #14532d; font-weight: 600; }
+  .pk-tag-ernte { background: #fef08a; color: #713f12; }
+  .pk-kat { background: #f0fdf4; font-weight: 700; font-size: 0.75rem; color: #6b7280; padding: 0.5rem 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; }
+
   @media (max-width: 600px) {
     .tab-bar { gap: 0; }
     .tab { font-size: 0.75rem; padding: 0.6rem 0.5rem; }
@@ -237,6 +250,7 @@
       <button onclick="changeMonth(1)">▶</button>
     </div>
     <div class="kalender-grid" id="kalender-grid"></div>
+    <div id="pflanzkalender"></div>
   </div>
 
   <!-- TAB: STATISTIK -->
@@ -253,6 +267,116 @@
 </div>
 
 <script>
+// ── Pflanzkalender-Daten (Quelle: aussaatkalender.com) ───────────────────────
+const PFLANZKALENDER = [
+  // Fruchtgemüse
+  { name: 'Tomaten',        kat: '🍅 Fruchtgemüse',      aussaat: [2,3],       pflanzen: [5],     ernte: [7,8,9] },
+  { name: 'Cherrytomaten',  kat: '🍅 Fruchtgemüse',      aussaat: [2,3],       pflanzen: [5],     ernte: [7,8,9] },
+  { name: 'Paprika',        kat: '🍅 Fruchtgemüse',      aussaat: [1,2,3],     pflanzen: [5,6],   ernte: [8,9,10] },
+  { name: 'Chili',          kat: '🍅 Fruchtgemüse',      aussaat: [1,2,3],     pflanzen: [5],     ernte: [8,9,10] },
+  { name: 'Auberginen',     kat: '🍅 Fruchtgemüse',      aussaat: [2,3],       pflanzen: [5],     ernte: [8,9] },
+  { name: 'Zucchini',       kat: '🍅 Fruchtgemüse',      aussaat: [4],         pflanzen: [5,6],   ernte: [6,7,8,9] },
+  { name: 'Gurken',         kat: '🍅 Fruchtgemüse',      aussaat: [4],         pflanzen: [5,6],   ernte: [6,7,8,9] },
+  { name: 'Kürbis',         kat: '🍅 Fruchtgemüse',      aussaat: [4],         pflanzen: [5],     ernte: [9,10] },
+  { name: 'Zuckermais',     kat: '🍅 Fruchtgemüse',      aussaat: [4,5],       pflanzen: [5],     ernte: [8,9] },
+  // Wurzel & Knollen
+  { name: 'Möhren',         kat: '🥕 Wurzel & Knollen',  aussaat: [3,4,5,6,7], pflanzen: [],      ernte: [6,7,8,9,10,11] },
+  { name: 'Rote Bete',      kat: '🥕 Wurzel & Knollen',  aussaat: [4,5,6],     pflanzen: [],      ernte: [8,9,10,11] },
+  { name: 'Radieschen',     kat: '🥕 Wurzel & Knollen',  aussaat: [3,4,5,6,7,8,9], pflanzen: [], ernte: [4,5,6,7,8,9,10] },
+  { name: 'Rettich',        kat: '🥕 Wurzel & Knollen',  aussaat: [3,4,5,6,7,8], pflanzen: [],   ernte: [5,6,7,8,9,10] },
+  { name: 'Sellerie',       kat: '🥕 Wurzel & Knollen',  aussaat: [2,3],       pflanzen: [5],     ernte: [9,10,11] },
+  { name: 'Fenchel',        kat: '🥕 Wurzel & Knollen',  aussaat: [5,6],       pflanzen: [],      ernte: [8,9,10] },
+  // Kohl & Blattgemüse
+  { name: 'Brokkoli',       kat: '🥦 Kohl & Blattgemüse', aussaat: [2,3],      pflanzen: [4,5],   ernte: [6,7,8,9] },
+  { name: 'Blumenkohl',     kat: '🥦 Kohl & Blattgemüse', aussaat: [2,3],      pflanzen: [4],     ernte: [7,8,9] },
+  { name: 'Kohlrabi',       kat: '🥦 Kohl & Blattgemüse', aussaat: [3],        pflanzen: [4],     ernte: [6,7,8,9] },
+  { name: 'Rotkohl',        kat: '🥦 Kohl & Blattgemüse', aussaat: [2,3],      pflanzen: [4],     ernte: [8,9,10,11] },
+  { name: 'Weißkohl',       kat: '🥦 Kohl & Blattgemüse', aussaat: [2,3],      pflanzen: [4],     ernte: [8,9,10,11] },
+  { name: 'Wirsing',        kat: '🥦 Kohl & Blattgemüse', aussaat: [3,4],      pflanzen: [5],     ernte: [9,10,11] },
+  { name: 'Spinat',         kat: '🥦 Kohl & Blattgemüse', aussaat: [3,4,8,9],  pflanzen: [],      ernte: [5,6,10,11] },
+  { name: 'Mangold',        kat: '🥦 Kohl & Blattgemüse', aussaat: [4,5,6],    pflanzen: [],      ernte: [6,7,8,9,10] },
+  { name: 'Feldsalat',      kat: '🥦 Kohl & Blattgemüse', aussaat: [8,9],      pflanzen: [],      ernte: [10,11,12] },
+  { name: 'Kopfsalat',      kat: '🥦 Kohl & Blattgemüse', aussaat: [3,4,5,6,7], pflanzen: [],    ernte: [5,6,7,8,9] },
+  { name: 'Rucola',         kat: '🥦 Kohl & Blattgemüse', aussaat: [3,4,5,6,7,8,9], pflanzen: [],ernte: [4,5,6,7,8,9,10] },
+  // Zwiebeln & Hülsenfrüchte
+  { name: 'Lauch',          kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [2,3], pflanzen: [5,6],  ernte: [9,10,11,12] },
+  { name: 'Porree',         kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [2,3], pflanzen: [5,6],  ernte: [9,10,11,12] },
+  { name: 'Zwiebeln',       kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [3,4], pflanzen: [],     ernte: [8,9] },
+  { name: 'Knoblauch',      kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [3,10,11], pflanzen: [], ernte: [6,7,8] },
+  { name: 'Erbsen',         kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [3,4], pflanzen: [],     ernte: [6,7,8] },
+  { name: 'Bohnen',         kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [5,6], pflanzen: [],     ernte: [7,8,9] },
+  { name: 'Stangenbohnen',  kat: '🧅 Zwiebeln & Hülsenfrüchte', aussaat: [5,6], pflanzen: [],     ernte: [7,8,9] },
+  // Kräuter
+  { name: 'Basilikum',      kat: '🌿 Kräuter',            aussaat: [4,5],       pflanzen: [5,6],  ernte: [6,7,8,9] },
+  { name: 'Petersilie',     kat: '🌿 Kräuter',            aussaat: [3,4,5],     pflanzen: [],     ernte: [6,7,8,9,10,11] },
+  { name: 'Schnittlauch',   kat: '🌿 Kräuter',            aussaat: [3,4],       pflanzen: [],     ernte: [5,6,7,8,9,10] },
+  { name: 'Dill',           kat: '🌿 Kräuter',            aussaat: [4,5,6,7],   pflanzen: [],     ernte: [6,7,8,9] },
+  { name: 'Koriander',      kat: '🌿 Kräuter',            aussaat: [4,5,6,7],   pflanzen: [],     ernte: [6,7,8,9] },
+  { name: 'Thymian',        kat: '🌿 Kräuter',            aussaat: [3,4],       pflanzen: [5],    ernte: [6,7,8,9] },
+  { name: 'Rosmarin',       kat: '🌿 Kräuter',            aussaat: [3,4],       pflanzen: [5],    ernte: [1,2,3,4,5,6,7,8,9,10,11,12] },
+  { name: 'Minze',          kat: '🌿 Kräuter',            aussaat: [],          pflanzen: [4,5],  ernte: [5,6,7,8,9,10] },
+  { name: 'Lavendel',       kat: '🌿 Kräuter',            aussaat: [],          pflanzen: [4,5],  ernte: [6,7,8] },
+  // Beeren
+  { name: 'Erdbeeren',      kat: '🍓 Beeren',             aussaat: [],          pflanzen: [3,4,8,9], ernte: [5,6,7] },
+  { name: 'Himbeeren',      kat: '🍓 Beeren',             aussaat: [],          pflanzen: [3,4],  ernte: [7,8,9] },
+  { name: 'Heidelbeeren',   kat: '🍓 Beeren',             aussaat: [],          pflanzen: [3,4,10], ernte: [7,8] },
+];
+
+function monatBereich(arr) {
+  if (!arr || arr.length === 0) return '—';
+  const kurz = ['','Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  if (arr.length === 1) return kurz[arr[0]];
+  const sorted = [...arr].sort((a,b) => a-b);
+  // Zusammenhängende Bereiche zusammenfassen
+  const ranges = [];
+  let start = sorted[0], end = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === end + 1) { end = sorted[i]; }
+    else { ranges.push(start === end ? kurz[start] : kurz[start]+'–'+kurz[end]); start = end = sorted[i]; }
+  }
+  ranges.push(start === end ? kurz[start] : kurz[start]+'–'+kurz[end]);
+  return ranges.join(', ');
+}
+
+function renderPflanzkalender() {
+  const el = document.getElementById('pflanzkalender');
+  if (!el) return;
+  const monat = kalenderMonth + 1; // 1-12
+
+  // Kategorien in Reihenfolge
+  const kategorien = [...new Set(PFLANZKALENDER.map(p => p.kat))];
+
+  let html = `<h3 style="margin-top:1.5rem;">📋 Pflanzkalender — Empfehlungen</h3>
+    <p style="font-size:0.78rem;color:#6b7280;margin:0 0 0.75rem;">Grün hervorgehoben = im aktuell gewählten Monat relevant. Quelle: aussaatkalender.com</p>
+    <div style="overflow-x:auto;">
+    <table class="pk-table">
+      <thead><tr>
+        <th>Pflanze</th>
+        <th>🌱 Aussaat</th>
+        <th>🌿 Auspflanzen</th>
+        <th>🥬 Ernte</th>
+      </tr></thead><tbody>`;
+
+  for (const kat of kategorien) {
+    const pflanzen = PFLANZKALENDER.filter(p => p.kat === kat);
+    html += `<tr><td colspan="4" class="pk-kat">${kat}</td></tr>`;
+    for (const p of pflanzen) {
+      const aktiv = p.aussaat.includes(monat) || p.pflanzen.includes(monat) || p.ernte.includes(monat);
+      const aussaatTag = p.aussaat.includes(monat)  ? ` class="pk-tag pk-tag-aussaat"` : ` style="color:#9ca3af;"`;
+      const pflanzenTag = p.pflanzen.includes(monat) ? ` class="pk-tag pk-tag-pflanzen"` : ` style="color:#9ca3af;"`;
+      const ernteTag = p.ernte.includes(monat)      ? ` class="pk-tag pk-tag-ernte"` : ` style="color:#9ca3af;"`;
+      html += `<tr class="${aktiv ? 'pk-aktiv' : ''}">
+        <td>${p.name}</td>
+        <td><span${aussaatTag}>${monatBereich(p.aussaat)}</span></td>
+        <td><span${pflanzenTag}>${monatBereich(p.pflanzen)}</span></td>
+        <td><span${ernteTag}>${monatBereich(p.ernte)}</span></td>
+      </tr>`;
+    }
+  }
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
 // ── Storage ─────────────────────────────────────────────────────────────────
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -586,6 +710,7 @@ function renderKalender() {
       }
     </div>
   `).join('');
+  renderPflanzkalender();
 }
 
 function changeMonth(dir) {
