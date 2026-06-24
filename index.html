@@ -93,6 +93,21 @@
   .bar-label { flex: 1; font-size: 0.62rem; color: #9ca3af; text-align: center; }
 
   select.small { font-size: 0.72rem; padding: 2px 6px; border: 1px solid #d1fae5; border-radius: 4px; color: #15803d; background: #f0fdf4; width: auto; }
+
+  .kpi-card { background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem;text-align:center; }
+  .kpi-val { font-size:1.75rem;font-weight:700;color:#14532d; }
+  .kpi-label { font-size:0.75rem;color:#6b7280;margin-top:2px; }
+  #kpi-row { display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem; }
+  #stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+
+  @media (max-width: 600px) {
+    .tab-bar { gap: 0; }
+    .tab { font-size: 0.75rem; padding: 0.6rem 0.5rem; }
+    .two-col { grid-template-columns: 1fr; }
+    #kpi-row { grid-template-columns: 1fr 1fr; }
+    #stat-grid { grid-template-columns: 1fr; }
+    #stat-grid .card[style*="grid-column"] { grid-column: 1; }
+  }
 </style>
 </head>
 <body>
@@ -546,11 +561,106 @@ function changeMonth(dir) {
   if (kalenderMonth > 11) { kalenderMonth = 0; kalenderYear++; }
   renderKalender();
 }
-function renderStatistik() {}
+function renderStatistik() {
+  const { beete, pflanzungen } = loadData();
+  const display = document.getElementById('saison-display');
+  if (display) display.textContent = 'Saison ' + statistikJahr;
+
+  const jahresPfl = pflanzungen.filter(p => {
+    const d = p.aussaat || p.pflanzung;
+    return d && d.startsWith(String(statistikJahr));
+  });
+
+  const geerntet = jahresPfl.filter(p => p.status === 'geerntet').length;
+  const gesamt = jahresPfl.length;
+  const erfolg = gesamt > 0 ? Math.round((geerntet / gesamt) * 100) : 0;
+
+  // KPI row
+  const kpi = document.getElementById('kpi-row');
+  if (kpi) kpi.innerHTML = [
+    { label: 'Beete', val: beete.length },
+    { label: 'Pflanzungen', val: gesamt },
+    { label: 'Geerntet', val: geerntet },
+    { label: 'Erfolgsquote', val: erfolg + '%' }
+  ].map(k => `<div class="kpi-card"><div class="kpi-val">${k.val}</div><div class="kpi-label">${k.label}</div></div>`).join('');
+
+  const grid = document.getElementById('stat-grid');
+  if (!grid) return;
+
+  // Top Pflanzen by Erfolgsquote
+  const pflanzenMap = {};
+  jahresPfl.forEach(p => {
+    if (!pflanzenMap[p.pflanze]) pflanzenMap[p.pflanze] = { gesamt: 0, geerntet: 0 };
+    pflanzenMap[p.pflanze].gesamt++;
+    if (p.status === 'geerntet') pflanzenMap[p.pflanze].geerntet++;
+  });
+  const topPflanzen = Object.entries(pflanzenMap)
+    .map(([name, { gesamt, geerntet }]) => ({ name, rate: gesamt > 0 ? Math.round((geerntet / gesamt) * 100) : 0, gesamt }))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 5);
+
+  // Beet Auslastung
+  const beetAuslastung = beete.map(b => {
+    const aktiv = jahresPfl.filter(p => p.beetId === b.id && p.status === 'waechst').length;
+    const flaeche = b.laenge * b.breite;
+    const dichte = flaeche > 0 ? Math.round((aktiv / flaeche) * 10) / 10 : 0;
+    return { name: b.name, aktiv, flaeche: flaeche.toFixed(1), dichte };
+  });
+
+  // Monatsbalken
+  const monatsDaten = Array.from({ length: 12 }, (_, i) => {
+    const m = String(i + 1).padStart(2, '0');
+    return jahresPfl.filter(p => (p.aussaat || p.pflanzung || '').startsWith(`${statistikJahr}-${m}`)).length;
+  });
+  const maxMonat = Math.max(...monatsDaten, 1);
+
+  grid.innerHTML = `
+    <div class="card">
+      <h3 style="margin:0 0 0.75rem;font-size:1rem;color:#14532d;">🌿 Top-Pflanzen (Erfolgsquote)</h3>
+      ${topPflanzen.length === 0
+        ? '<p style="color:#9ca3af;font-size:0.82rem;">Keine Daten für diese Saison.</p>'
+        : topPflanzen.map(p => `
+          <div style="margin-bottom:0.5rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:2px;">
+              <span>${p.name}</span><span>${p.rate}%</span>
+            </div>
+            <div style="background:#dcfce7;border-radius:4px;height:8px;">
+              <div style="background:#16a34a;height:8px;border-radius:4px;width:${p.rate}%;"></div>
+            </div>
+          </div>`).join('')
+      }
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 0.75rem;font-size:1rem;color:#14532d;">🪴 Beet-Auslastung</h3>
+      ${beetAuslastung.length === 0
+        ? '<p style="color:#9ca3af;font-size:0.82rem;">Keine Beete vorhanden.</p>'
+        : beetAuslastung.map(b => `
+          <div style="margin-bottom:0.5rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:2px;">
+              <span>${b.name} (${b.flaeche} m²)</span><span>${b.aktiv} aktiv</span>
+            </div>
+            <div style="background:#dcfce7;border-radius:4px;height:8px;">
+              <div style="background:#16a34a;height:8px;border-radius:4px;width:${Math.min(b.dichte * 20, 100)}%;"></div>
+            </div>
+          </div>`).join('')
+      }
+    </div>
+    <div class="card" style="grid-column:1/-1;">
+      <h3 style="margin:0 0 0.75rem;font-size:1rem;color:#14532d;">📊 Pflanzungen pro Monat</h3>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:80px;">
+        ${monatsDaten.map((n, i) => `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="background:#16a34a;width:100%;border-radius:3px 3px 0 0;height:${Math.round((n / maxMonat) * 64)}px;" title="${n} Pflanzungen"></div>
+            <span style="font-size:0.6rem;color:#6b7280;">${MONATE[i].slice(0,3)}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function changeSaison(dir) {
   statistikJahr += dir;
-  const el = document.getElementById('saison-display');
-  if (el) el.textContent = 'Saison ' + statistikJahr;
+  renderStatistik();
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
