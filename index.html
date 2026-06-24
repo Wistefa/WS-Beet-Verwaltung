@@ -250,12 +250,141 @@ function showTab(id, el) {
   if (id === 'statistik') renderStatistik();
 }
 
-// ── Placeholder-Funktionen (werden in Task 3-6 ersetzt) ──────────────────────
-function renderBeete() {}
-function neuesBeet() {}
-function saveBeet() {}
-function deleteBeet() {}
-function updateBeetDropdowns() {}
+// ── Beete ───────────────────────────────────────────────────────────────────
+const STANDORT_LABEL = { sonne: '☀️ Volle Sonne', halbschatten: '🌤️ Halbschatten', schatten: '☁️ Schatten' };
+
+function renderBeete() {
+  const { beete, pflanzungen } = loadData();
+  const list = document.getElementById('beet-list');
+  if (!list) return;
+  if (beete.length === 0) {
+    list.innerHTML = '<p style="color:#9ca3af;font-size:0.82rem;padding:0.5rem 0;">Noch keine Beete angelegt.</p>';
+    return;
+  }
+  list.innerHTML = beete.map(b => {
+    const anzahl = pflanzungen.filter(p => p.beetId === b.id).length;
+    const flaeche = (b.laenge * b.breite).toFixed(1);
+    const sel = b.id === currentBeetId ? ' selected' : '';
+    return `<div class="list-item${sel}" onclick="selectBeet('${b.id}')">
+      <div>
+        <div class="list-item-title">${b.name}</div>
+        <div class="list-item-sub">${b.laenge} × ${b.breite} m (${flaeche} m²) · ${STANDORT_LABEL[b.standort]}</div>
+      </div>
+      <span class="badge">${anzahl} Pflanze${anzahl !== 1 ? 'n' : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectBeet(id) {
+  currentBeetId = id;
+  const { beete } = loadData();
+  const b = beete.find(x => x.id === id);
+  if (!b) return;
+  document.getElementById('beet-form-title').textContent = '✏️ Beet bearbeiten';
+  document.getElementById('beet-name').value = b.name;
+  document.getElementById('beet-laenge').value = b.laenge;
+  document.getElementById('beet-breite').value = b.breite;
+  document.getElementById('beet-standort').value = b.standort;
+  document.getElementById('beet-notizen').value = b.notizen || '';
+  document.getElementById('beet-delete-btn').style.display = '';
+  updateFlaeche();
+  renderBeete();
+}
+
+function neuesBeet() {
+  currentBeetId = null;
+  document.getElementById('beet-form-title').textContent = '✏️ Beet anlegen';
+  document.getElementById('beet-name').value = '';
+  document.getElementById('beet-laenge').value = '';
+  document.getElementById('beet-breite').value = '';
+  document.getElementById('beet-standort').value = 'sonne';
+  document.getElementById('beet-notizen').value = '';
+  document.getElementById('beet-flaeche').textContent = '';
+  document.getElementById('beet-delete-btn').style.display = 'none';
+  document.getElementById('beet-name').focus();
+  renderBeete();
+}
+
+function updateFlaeche() {
+  const l = parseFloat(document.getElementById('beet-laenge').value);
+  const b = parseFloat(document.getElementById('beet-breite').value);
+  const el = document.getElementById('beet-flaeche');
+  if (!el) return;
+  el.textContent = (!isNaN(l) && !isNaN(b) && l > 0 && b > 0) ? `📐 Fläche: ${(l * b).toFixed(2)} m²` : '';
+}
+
+function saveBeet() {
+  const name = document.getElementById('beet-name').value.trim();
+  const laenge = parseFloat(document.getElementById('beet-laenge').value);
+  const breite = parseFloat(document.getElementById('beet-breite').value);
+  if (!name || isNaN(laenge) || isNaN(breite) || laenge <= 0 || breite <= 0) {
+    alert('Bitte Name und gültige Maße eingeben.');
+    return;
+  }
+  const { beete } = loadData();
+  if (currentBeetId) {
+    const idx = beete.findIndex(b => b.id === currentBeetId);
+    beete[idx] = { ...beete[idx], name, laenge, breite,
+      standort: document.getElementById('beet-standort').value,
+      notizen: document.getElementById('beet-notizen').value.trim() };
+  } else {
+    const neu = { id: uid(), name, laenge, breite,
+      standort: document.getElementById('beet-standort').value,
+      notizen: document.getElementById('beet-notizen').value.trim() };
+    beete.push(neu);
+    currentBeetId = neu.id;
+  }
+  saveBeete(beete);
+  updateBeetDropdowns();
+  renderBeete();
+  flash('✅ Beet gespeichert');
+}
+
+function deleteBeet() {
+  if (!currentBeetId) return;
+  const { beete, pflanzungen } = loadData();
+  const beet = beete.find(b => b.id === currentBeetId);
+  if (!beet) return;
+  const count = pflanzungen.filter(p => p.beetId === currentBeetId).length;
+  const msg = count > 0
+    ? `Beet "${beet.name}" löschen? Es hat noch ${count} Pflanzung(en) — diese bleiben ohne Beet-Zuweisung.`
+    : `Beet "${beet.name}" wirklich löschen?`;
+  if (!confirm(msg)) return;
+  saveBeete(beete.filter(b => b.id !== currentBeetId));
+  currentBeetId = null;
+  updateBeetDropdowns();
+  neuesBeet();
+  flash('🗑️ Beet gelöscht');
+}
+
+function flash(msg) {
+  let el = document.getElementById('flash-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'flash-msg';
+    el.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#14532d;color:white;padding:0.6rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:600;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition:opacity 0.4s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.style.opacity = '0', 2000);
+}
+
+function updateBeetDropdowns() {
+  const { beete } = loadData();
+  const opts = beete.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  const pfl = document.getElementById('pfl-beet');
+  if (pfl) pfl.innerHTML = opts || '<option value="">— kein Beet —</option>';
+  const filter = document.getElementById('filter-beet');
+  if (filter) {
+    const cur = filter.value;
+    filter.innerHTML = '<option value="">Alle Beete</option>' + beete.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    filter.value = cur;
+  }
+}
+
+// ── Placeholder-Funktionen (werden in Task 4-6 ersetzt) ──────────────────────
 function updateJahrFilter() {}
 function renderPflanzungen() {}
 function neuePflanzung() {}
@@ -285,6 +414,10 @@ function init() {
   if (monthEl) monthEl.textContent = MONATE[kalenderMonth] + ' ' + kalenderYear;
   const saisonEl = document.getElementById('saison-display');
   if (saisonEl) saisonEl.textContent = 'Saison ' + statistikJahr;
+  const laengeEl = document.getElementById('beet-laenge');
+  const breiteEl = document.getElementById('beet-breite');
+  if (laengeEl) laengeEl.addEventListener('input', updateFlaeche);
+  if (breiteEl) breiteEl.addEventListener('input', updateFlaeche);
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
