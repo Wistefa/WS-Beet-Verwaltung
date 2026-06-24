@@ -116,249 +116,90 @@
 
   <!-- TAB: BEETE -->
   <div id="panel-beete" class="panel active">
-
-    <div class="card">
+    <div class="card" id="beet-list-card">
       <div class="card-title">🌿 Meine Beete</div>
-      <div id="beet-list">
-        <div class="list-item selected" onclick="selectBeet(this, 'Hochbeet Nord', '3.0', '1.2', 'sonne')">
-          <div>
-            <div class="list-item-title">Hochbeet Nord</div>
-            <div class="list-item-sub">3.0 × 1.2 m · ☀️ Volle Sonne</div>
-          </div>
-          <span class="badge">4 Pflanzen</span>
-        </div>
-        <div class="list-item" onclick="selectBeet(this, 'Rundbeet Süd', '1.8', '1.4', 'halbschatten')">
-          <div>
-            <div class="list-item-title">Rundbeet Süd</div>
-            <div class="list-item-sub">1.8 × 1.4 m · 🌤️ Halbschatten</div>
-          </div>
-          <span class="badge">2 Pflanzen</span>
-        </div>
-        <div class="list-item" onclick="selectBeet(this, 'Kräuterbeet West', '1.0', '0.8', 'schatten')">
-          <div>
-            <div class="list-item-title">Kräuterbeet West</div>
-            <div class="list-item-sub">1.0 × 0.8 m · ☁️ Schatten</div>
-          </div>
-          <span class="badge">3 Pflanzen</span>
-        </div>
-      </div>
+      <div id="beet-list"></div>
       <button class="btn-ghost" onclick="neuesBeet()">+ Neues Beet anlegen</button>
     </div>
-
-    <div class="card">
-      <div class="card-title">✏️ Beet bearbeiten</div>
-      <div class="form-group">
-        <label>Bezeichnung</label>
-        <input type="text" id="beet-name" value="Hochbeet Nord">
-      </div>
+    <div class="card" id="beet-form-card">
+      <div class="card-title" id="beet-form-title">✏️ Beet anlegen</div>
+      <div class="form-group"><label>Bezeichnung</label><input type="text" id="beet-name" placeholder="z.B. Hochbeet Nord"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Länge (m)</label>
-          <input type="text" id="beet-laenge" value="3.0">
-        </div>
-        <div class="form-group">
-          <label>Breite (m)</label>
-          <input type="text" id="beet-breite" value="1.2">
-        </div>
+        <div class="form-group"><label>Länge (m)</label><input type="number" id="beet-laenge" step="0.1" min="0.1" placeholder="2.0"></div>
+        <div class="form-group"><label>Breite (m)</label><input type="number" id="beet-breite" step="0.1" min="0.1" placeholder="1.0"></div>
       </div>
-      <div class="form-group">
-        <label>Standort</label>
+      <div class="form-group"><label>Standort</label>
         <select id="beet-standort">
-          <option value="sonne" selected>☀️ Volle Sonne</option>
+          <option value="sonne">☀️ Volle Sonne</option>
           <option value="halbschatten">🌤️ Halbschatten</option>
           <option value="schatten">☁️ Schatten</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Notizen</label>
-        <textarea rows="2" placeholder="Besonderheiten, Boden, etc."></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="saveBeet()">💾 Beet speichern</button>
+      <div class="form-group"><label>Notizen</label><textarea id="beet-notizen" rows="2" placeholder="Besonderheiten, Boden ..."></textarea></div>
+      <div id="beet-flaeche" style="font-size:0.8rem;color:#15803d;margin-bottom:0.5rem;"></div>
+      <button class="btn btn-primary" onclick="saveBeet()">💾 Speichern</button>
+      <button class="btn-ghost" id="beet-delete-btn" style="display:none;margin-top:0.4rem;border-color:#fca5a5;color:#dc2626;" onclick="deleteBeet()">🗑️ Beet löschen</button>
     </div>
-
   </div>
 
   <!-- TAB: PFLANZUNGEN -->
   <div id="panel-pflanzungen" class="panel">
-
     <div class="card">
       <div class="card-title">
-        🌱 Pflanzungen 2026
-        <select class="small" id="filter-beet">
-          <option>Alle Beete</option>
-          <option>Hochbeet Nord</option>
-          <option>Rundbeet Süd</option>
-          <option>Kräuterbeet West</option>
-        </select>
-      </div>
-      <div id="pflanzung-list">
-        <div class="list-item selected" onclick="selectPflanzung(this, 'Tomaten', 'Hochbeet Nord', '2026-03-15', '2026-05-10', 'waechst')">
-          <div>
-            <div class="list-item-title">🍅 Tomaten (Hochbeet Nord)</div>
-            <div class="list-item-sub">Gesät: 15.03 · Gepflanzt: 10.05</div>
-          </div>
-          <span class="badge orange">🌿 Wächst</span>
-        </div>
-        <div class="list-item" onclick="selectPflanzung(this, 'Möhren', 'Rundbeet Süd', '2026-04-20', '', 'geerntet')">
-          <div>
-            <div class="list-item-title">🥕 Möhren (Rundbeet Süd)</div>
-            <div class="list-item-sub">Gesät: 20.04 · Ernte: Aug</div>
-          </div>
-          <span class="badge">✅ Geerntet</span>
-        </div>
-        <div class="list-item" onclick="selectPflanzung(this, 'Salat', 'Hochbeet Nord', '2026-04-01', '2026-04-25', 'gesaet')">
-          <div>
-            <div class="list-item-title">🥬 Salat (Hochbeet Nord)</div>
-            <div class="list-item-sub">Gesät: 01.04 · Gepflanzt: 25.04</div>
-          </div>
-          <span class="badge blue">🌰 Gesät</span>
-        </div>
-        <div class="list-item" onclick="selectPflanzung(this, 'Zucchini', 'Rundbeet Süd', '2026-05-01', '2026-05-20', 'waechst')">
-          <div>
-            <div class="list-item-title">🥒 Zucchini (Rundbeet Süd)</div>
-            <div class="list-item-sub">Gesät: 01.05 · Gepflanzt: 20.05</div>
-          </div>
-          <span class="badge orange">🌿 Wächst</span>
+        🌱 Pflanzungen
+        <div style="display:flex;gap:0.5rem;">
+          <select class="small" id="filter-beet" onchange="renderPflanzungen()">
+            <option value="">Alle Beete</option>
+          </select>
+          <select class="small" id="filter-jahr" onchange="renderPflanzungen()">
+            <option value="">Alle Jahre</option>
+          </select>
         </div>
       </div>
+      <div id="pflanzung-list"></div>
       <button class="btn-ghost" onclick="neuePflanzung()">+ Neue Pflanzung eintragen</button>
     </div>
-
     <div class="card">
-      <div class="card-title">✏️ Pflanzung erfassen</div>
-      <div class="form-group">
-        <label>Pflanze</label>
-        <input type="text" id="pfl-name" value="Tomaten" placeholder="z.B. Tomaten, Möhren ...">
-      </div>
-      <div class="form-group">
-        <label>Beet</label>
-        <select id="pfl-beet">
-          <option selected>Hochbeet Nord</option>
-          <option>Rundbeet Süd</option>
-          <option>Kräuterbeet West</option>
-        </select>
-      </div>
+      <div class="card-title" id="pfl-form-title">✏️ Pflanzung erfassen</div>
+      <div class="form-group"><label>Pflanze</label><input type="text" id="pfl-name" placeholder="z.B. Tomaten, Möhren ..."></div>
+      <div class="form-group"><label>Beet</label><select id="pfl-beet"></select></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Aussaat</label>
-          <input type="date" id="pfl-aussaat" value="2026-03-15">
-        </div>
-        <div class="form-group">
-          <label>Pflanzung</label>
-          <input type="date" id="pfl-pflanzung" value="2026-05-10">
-        </div>
+        <div class="form-group"><label>Aussaat</label><input type="date" id="pfl-aussaat"></div>
+        <div class="form-group"><label>Pflanzung</label><input type="date" id="pfl-pflanzung"></div>
       </div>
-      <div class="form-group">
-        <label>Status</label>
+      <div class="form-group"><label>Status</label>
         <select id="pfl-status">
           <option value="gesaet">🌰 Gesät</option>
-          <option value="waechst" selected>🌿 Wächst</option>
+          <option value="waechst">🌿 Wächst</option>
           <option value="geerntet">✅ Geerntet</option>
           <option value="gescheitert">❌ Gescheitert</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Notizen</label>
-        <textarea rows="2" id="pfl-notizen" placeholder="Sorte, Besonderheiten ..."></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="savePflanzung()">💾 Pflanzung speichern</button>
+      <div class="form-group"><label>Notizen</label><textarea id="pfl-notizen" rows="2" placeholder="Sorte, Besonderheiten ..."></textarea></div>
+      <button class="btn btn-primary" onclick="savePflanzung()">💾 Speichern</button>
+      <button class="btn-ghost" id="pfl-delete-btn" style="display:none;margin-top:0.4rem;border-color:#fca5a5;color:#dc2626;" onclick="deletePflanzung()">🗑️ Pflanzung löschen</button>
     </div>
-
   </div>
 
   <!-- TAB: KALENDER -->
   <div id="panel-kalender" class="panel kalender-panel">
-
     <div class="month-nav">
       <button onclick="changeMonth(-1)">◀</button>
-      <h2 id="month-display">Juni 2026</h2>
+      <h2 id="month-display"></h2>
       <button onclick="changeMonth(1)">▶</button>
     </div>
-
-    <div class="kalender-grid">
-      <div class="kalender-card gruen">
-        <div class="kalender-card-title">🌱 Jetzt pflanzen</div>
-        <div class="kalender-row"><span>🥬 Feldsalat</span><span>Hochbeet Nord</span></div>
-        <div class="kalender-row"><span>🥦 Brokkoli</span><span>Rundbeet Süd</span></div>
-        <div class="kalender-row"><span>🌿 Basilikum</span><span>Kräuterbeet West</span></div>
-      </div>
-      <div class="kalender-card orange">
-        <div class="kalender-card-title">🌾 Zur Ernte bereit</div>
-        <div class="kalender-row"><span>🥬 Salat</span><span>seit 10.06</span></div>
-        <div class="kalender-row"><span>🌿 Radieschen</span><span>seit 15.06</span></div>
-      </div>
-      <div class="kalender-card blau">
-        <div class="kalender-card-title">💧 Gießen nicht vergessen</div>
-        <div class="kalender-row"><span>🍅 Tomaten</span><span>täglich</span></div>
-        <div class="kalender-row"><span>🥒 Zucchini</span><span>2× pro Woche</span></div>
-        <div class="kalender-row"><span>🫑 Paprika</span><span>jeden 2. Tag</span></div>
-      </div>
-      <div class="kalender-card lila">
-        <div class="kalender-card-title">📋 Nächste Schritte</div>
-        <div class="kalender-row"><span>🪴 Tomaten aufbinden</span><span>KW 26</span></div>
-        <div class="kalender-row"><span>🌱 Herbst-Aussaat vorbereiten</span><span>Juli</span></div>
-        <div class="kalender-row"><span>✂️ Basilikum schneiden</span><span>laufend</span></div>
-      </div>
-    </div>
-
+    <div class="kalender-grid" id="kalender-grid"></div>
   </div>
 
   <!-- TAB: STATISTIK -->
   <div id="panel-statistik" class="panel statistik-panel">
-
     <div class="month-nav">
       <button onclick="changeSaison(-1)">◀</button>
-      <h2 id="saison-display">Saison 2026</h2>
+      <h2 id="saison-display"></h2>
       <button onclick="changeSaison(1)">▶</button>
     </div>
-
-    <div class="kpi-row">
-      <div class="kpi-box"><div class="kpi-value">3</div><div class="kpi-label">Beete</div></div>
-      <div class="kpi-box"><div class="kpi-value">12</div><div class="kpi-label">Pflanzungen</div></div>
-      <div class="kpi-box"><div class="kpi-value orange">8</div><div class="kpi-label">Geerntet</div></div>
-      <div class="kpi-box"><div class="kpi-value blue">67%</div><div class="kpi-label">Erfolgsquote</div></div>
-    </div>
-
-    <div class="stat-grid">
-      <div class="card">
-        <div class="card-title">🏆 Top-Pflanzen 2026</div>
-        <div class="progress-label"><span>🍅 Tomaten</span><span style="color:#15803d;font-weight:600;">sehr gut</span></div>
-        <div class="progress-track"><div class="progress-bar" style="width:90%"></div></div>
-        <div class="progress-label"><span>🥬 Salat</span><span style="color:#15803d;font-weight:600;">gut</span></div>
-        <div class="progress-track"><div class="progress-bar" style="width:75%"></div></div>
-        <div class="progress-label"><span>🥕 Möhren</span><span style="color:#d97706;font-weight:600;">mittel</span></div>
-        <div class="progress-track"><div class="progress-bar orange" style="width:50%"></div></div>
-        <div class="progress-label"><span>🥦 Brokkoli</span><span style="color:#dc2626;font-weight:600;">schlecht</span></div>
-        <div class="progress-track"><div class="progress-bar red" style="width:20%"></div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">📐 Beet-Auslastung</div>
-        <div class="progress-label"><span>Hochbeet Nord</span><span style="color:#14532d;font-weight:600;">85%</span></div>
-        <div class="progress-track"><div class="progress-bar" style="width:85%"></div></div>
-        <div class="progress-label"><span>Rundbeet Süd</span><span style="color:#15803d;font-weight:600;">60%</span></div>
-        <div class="progress-track"><div class="progress-bar" style="width:60%"></div></div>
-        <div class="progress-label"><span>Kräuterbeet West</span><span style="color:#d97706;font-weight:600;">40%</span></div>
-        <div class="progress-track"><div class="progress-bar orange" style="width:40%"></div></div>
-
-        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid #f0fdf4;">
-          <div style="font-size:0.7rem; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.5rem;">Pflanzungen pro Monat</div>
-          <div class="bar-chart">
-            <div class="bar" style="height:30%; background:#bbf7d0;"></div>
-            <div class="bar" style="height:70%; background:#86efac;"></div>
-            <div class="bar" style="height:100%; background:#16a34a;"></div>
-            <div class="bar" style="height:80%; background:#16a34a;"></div>
-            <div class="bar" style="height:50%; background:#86efac;"></div>
-            <div class="bar" style="height:30%; background:#bbf7d0;"></div>
-          </div>
-          <div class="bar-labels">
-            <div class="bar-label">Mär</div><div class="bar-label">Apr</div><div class="bar-label">Mai</div>
-            <div class="bar-label">Jun</div><div class="bar-label">Jul</div><div class="bar-label">Aug</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div class="kpi-row" id="kpi-row"></div>
+    <div class="stat-grid" id="stat-grid"></div>
   </div>
 
 </div>
@@ -389,78 +230,63 @@ function savePflanzungen(pflanzungen) {
   localStorage.setItem('bv_pflanzungen', JSON.stringify(pflanzungen));
 }
 
-// ── UI Funktionen ───────────────────────────────────────────────────────────
-  function showTab(id, el) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('panel-' + id).classList.add('active');
-    el.classList.add('active');
-  }
+// ── State ────────────────────────────────────────────────────────────────────
+let currentBeetId = null;
+let currentPflanzungId = null;
+const MONATE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+let kalenderMonth = new Date().getMonth();
+let kalenderYear = new Date().getFullYear();
+let statistikJahr = new Date().getFullYear();
 
-  function selectBeet(el, name, laenge, breite, standort) {
-    document.querySelectorAll('#beet-list .list-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected');
-    document.getElementById('beet-name').value = name;
-    document.getElementById('beet-laenge').value = laenge;
-    document.getElementById('beet-breite').value = breite;
-    document.getElementById('beet-standort').value = standort;
-  }
+// ── Navigation ───────────────────────────────────────────────────────────────
+function showTab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'beete') renderBeete();
+  if (id === 'pflanzungen') renderPflanzungen();
+  if (id === 'kalender') renderKalender();
+  if (id === 'statistik') renderStatistik();
+}
 
-  function neuesBeet() {
-    document.querySelectorAll('#beet-list .list-item').forEach(i => i.classList.remove('selected'));
-    document.getElementById('beet-name').value = '';
-    document.getElementById('beet-laenge').value = '';
-    document.getElementById('beet-breite').value = '';
-    document.getElementById('beet-standort').value = 'sonne';
-    document.getElementById('beet-name').focus();
-  }
+// ── Placeholder-Funktionen (werden in Task 3-6 ersetzt) ──────────────────────
+function renderBeete() {}
+function neuesBeet() {}
+function saveBeet() {}
+function deleteBeet() {}
+function updateBeetDropdowns() {}
+function updateJahrFilter() {}
+function renderPflanzungen() {}
+function neuePflanzung() {}
+function savePflanzung() {}
+function deletePflanzung() {}
+function renderKalender() {}
+function changeMonth(dir) {
+  kalenderMonth += dir;
+  if (kalenderMonth < 0) { kalenderMonth = 11; kalenderYear--; }
+  if (kalenderMonth > 11) { kalenderMonth = 0; kalenderYear++; }
+  const el = document.getElementById('month-display');
+  if (el) el.textContent = MONATE[kalenderMonth] + ' ' + kalenderYear;
+}
+function renderStatistik() {}
+function changeSaison(dir) {
+  statistikJahr += dir;
+  const el = document.getElementById('saison-display');
+  if (el) el.textContent = 'Saison ' + statistikJahr;
+}
 
-  function saveBeet() {
-    const name = document.getElementById('beet-name').value.trim();
-    if (!name) return;
-    alert('✅ Beet "' + name + '" gespeichert! (Demo)');
-  }
-
-  function selectPflanzung(el, name, beet, aussaat, pflanzung, status) {
-    document.querySelectorAll('#pflanzung-list .list-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected');
-    document.getElementById('pfl-name').value = name;
-    document.getElementById('pfl-beet').value = beet;
-    document.getElementById('pfl-aussaat').value = aussaat;
-    document.getElementById('pfl-pflanzung').value = pflanzung;
-    document.getElementById('pfl-status').value = status;
-  }
-
-  function neuePflanzung() {
-    document.querySelectorAll('#pflanzung-list .list-item').forEach(i => i.classList.remove('selected'));
-    document.getElementById('pfl-name').value = '';
-    document.getElementById('pfl-aussaat').value = '';
-    document.getElementById('pfl-pflanzung').value = '';
-    document.getElementById('pfl-status').value = 'gesaet';
-    document.getElementById('pfl-notizen').value = '';
-    document.getElementById('pfl-name').focus();
-  }
-
-  function savePflanzung() {
-    const name = document.getElementById('pfl-name').value.trim();
-    if (!name) return;
-    alert('✅ Pflanzung "' + name + '" gespeichert! (Demo)');
-  }
-
-  const monate = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  let currentMonth = 5, currentYear = 2026;
-  function changeMonth(dir) {
-    currentMonth += dir;
-    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-    document.getElementById('month-display').textContent = monate[currentMonth] + ' ' + currentYear;
-  }
-
-  let currentSaison = 2026;
-  function changeSaison(dir) {
-    currentSaison += dir;
-    document.getElementById('saison-display').textContent = 'Saison ' + currentSaison;
-  }
+// ── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  renderBeete();
+  updateBeetDropdowns();
+  updateJahrFilter();
+  const monthEl = document.getElementById('month-display');
+  if (monthEl) monthEl.textContent = MONATE[kalenderMonth] + ' ' + kalenderYear;
+  const saisonEl = document.getElementById('saison-display');
+  if (saisonEl) saisonEl.textContent = 'Saison ' + statistikJahr;
+}
+document.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
